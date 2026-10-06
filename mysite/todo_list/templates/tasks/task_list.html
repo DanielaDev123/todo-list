@@ -1,0 +1,17 @@
+{% extends "tasks/base.html" %}
+{% block content %}
+<h1>Задачи</h1>
+{% for task in tasks %}
+  <div class="task">
+    <a href="{% url 'task_detail' task.pk %}" class="{% if task.completed %}done{% endif %}"><b>{{ task.title }}</b></a>
+    <div>
+      Проект: {{ task.project }} · приоритет: {{ task.priority }}
+      {% if task.deadline %}· срок: <span class="{% if task.is_overdue %}overdue{% endif %}">{{ task.deadline|date:"d.m.Y H:i" }}{% if task.is_overdue %} (просрочено){% endif %}</span>{% endif %}
+    </div>
+    <div>{% for tag in task.tags.all %}<span class="tag">{{ tag }}</span>{% endfor %}</div>
+    <div>Подзадачи: {{ task.get_progress }}% · комментариев: {{ task.get_comments_count }}</div>
+  </div>
+{% empty %}
+  <p>Задач пока нет.</p>
+{% endfor %}
+{% endblock %}

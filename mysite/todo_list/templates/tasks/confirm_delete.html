@@ -1,0 +1,9 @@
+{% extends "tasks/base.html" %}
+{% block content %}
+<h1>Удалить «{{ object }}»?</h1>
+<form method="post">
+  {% csrf_token %}
+  <button>Да, удалить</button>
+  <a href="javascript:history.back()">Отмена</a>
+</form>
+{% endblock %}

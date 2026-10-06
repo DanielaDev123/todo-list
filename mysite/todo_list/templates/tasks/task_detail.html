@@ -1,0 +1,53 @@
+{% extends "tasks/base.html" %}
+{% block content %}
+<h1 class="{% if task.completed %}done{% endif %}">{{ task.title }}</h1>
+<p>{{ task.description|linebreaksbr }}</p>
+<p>
+  Проект: {{ task.project }} ({{ task.project.get_tasks_count }} задач, выполнено {{ task.project.get_completed_percent }}%)<br>
+  Приоритет: {{ task.priority }}<br>
+  Исполнитель: {{ task.assignee|default:"—" }}<br>
+  Создана: {{ task.created_date|date:"d.m.Y H:i" }}<br>
+  {% if task.deadline %}Срок: <span class="{% if task.is_overdue %}overdue{% endif %}">{{ task.deadline|date:"d.m.Y H:i" }}{% if task.is_overdue %} (просрочено){% endif %}</span>{% endif %}
+</p>
+<p>{% for tag in task.tags.all %}<span class="tag">{{ tag }}</span>{% endfor %}</p>
+
+<p>
+  <a class="btn" href="{% url 'task_update' task.pk %}">Редактировать</a>
+  <a class="btn" href="{% url 'task_delete' task.pk %}">Удалить</a>
+</p>
+<form method="post" action="{% url 'favorite_toggle' task.pk %}">
+  {% csrf_token %}
+  <button>{% if is_favorite %}★ Убрать из избранного{% else %}☆ В избранное{% endif %}</button>
+</form>
+
+<h3>Подзадачи ({{ task.get_progress }}%)</h3>
+<div class="bar"><div style="width: {{ task.get_progress }}%"></div></div>
+<ul>
+  {% for s in task.subtasks.all %}
+    <li class="{% if s.completed %}done{% endif %}">{{ s.title }}</li>
+  {% empty %}<li>Нет подзадач</li>{% endfor %}
+</ul>
+
+<h3>Файлы</h3>
+<ul>
+  {% for f in task.files.all %}<li><a href="{{ f.file.url }}">{{ f.file.name }}</a></li>
+  {% empty %}<li>Нет файлов</li>{% endfor %}
+</ul>
+
+<h3>Комментарии ({{ task.get_comments_count }})</h3>
+{% for c in task.comments.all %}
+  <div class="comment">
+    <b>{{ c.user }}</b> · {{ c.created_date|date:"d.m.Y H:i" }}
+    <p>{{ c.text|linebreaksbr }}</p>
+    {% if c.user == user %}
+      <a href="{% url 'comment_update' c.pk %}">Изменить</a> ·
+      <a href="{% url 'comment_delete' c.pk %}">Удалить</a>
+    {% endif %}
+  </div>
+{% endfor %}
+<form method="post" action="{% url 'comment_create' task.pk %}">
+  {% csrf_token %}
+  {{ comment_form.as_p }}
+  <button>Добавить комментарий</button>
+</form>
+{% endblock %}
